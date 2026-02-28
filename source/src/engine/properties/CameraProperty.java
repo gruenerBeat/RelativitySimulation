@@ -16,7 +16,7 @@ public class CameraProperty extends Property{
         this.fov = fov;
         this.sensorDimension = sensorDimension;
         this.aspectRatio = aspectRatio;
-        focalLength = (sensorDimension / 2) * Trig.cot(fov / 2);
+        focalLength = (0.05 * sensorDimension / 2) * Trig.cot(Trig.degreeToRad(fov) / 2);
         super("Camera", PropertyType.CAMERA);
     }
 

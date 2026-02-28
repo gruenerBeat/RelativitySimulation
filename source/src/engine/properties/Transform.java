@@ -25,9 +25,9 @@ public class Transform extends Property{
 
     public void reset() {
         position = new Vector(new double[]{0, 0, 0});
-        xVector = new Vector(new double[]{1, 0, 0});
-        yVector = new Vector(new double[]{0, 1, 0});
-        zVector = new Vector(new double[]{0, 0, 1});
+        xVector = left;
+        yVector = up;
+        zVector = forward;
     }
 
     public Vector getPosition() {
@@ -49,7 +49,7 @@ public class Transform extends Property{
     public void setxVector(Vector xVector) {
         this.xVector = xVector;
     }
-
+    
     public void setyVector(Vector yVector) {
         this.yVector = yVector;
     }

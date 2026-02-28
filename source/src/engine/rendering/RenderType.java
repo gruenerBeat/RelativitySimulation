@@ -1,8 +1,11 @@
 package engine.rendering;
 
+import game.rendering.NumericRenderer;
+
 public enum RenderType {
     SOFTWARE(Software.class),
-    RAY_TRACING(RayTracing.class);
+    RAY_TRACING(RayTracing.class),
+    NUMERIC(NumericRenderer.class);
 
     private final Class<? extends Renderer> renderClass;
 

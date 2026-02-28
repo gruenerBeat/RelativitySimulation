@@ -28,6 +28,15 @@ public class PolarCoords {
     }
 
     public static Vector toCartesian(Vector v) {
-        return v;
+        assert v.getSize() == 2 || v.getSize() == 3 : "v doesn't have the right dimension";
+        if(v.getSize() == 2) {
+            return new Vector(new double[]{v.val[0] * Math.cos(v.val[1]), v.val[0] * Math.sin(v.val[1])});
+        } else {
+            return new Vector(new double[]{
+                v.val[0] * Math.sin(v.val[1]) * Math.cos(v.val[2]),
+                v.val[0] * Math.cos(v.val[1]),
+                v.val[0] * Math.sin(v.val[1]) * Math.sin(v.val[2])
+            });
+        }
     }
 }
