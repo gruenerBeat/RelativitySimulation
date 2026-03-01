@@ -6,6 +6,7 @@ import engine.libs.types.Color.Color;
 public class RelativisticRay {
     
     public Vector state;
+    public Vector previous;
     public boolean didHit;
     public Color color;
     
