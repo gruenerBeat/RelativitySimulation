@@ -6,13 +6,7 @@ import engine.libs.math.Matrix;
 public class HamiltonTest {
 
    public static Vector f(Vector x){
-
-       Vector y = new Vector(new double[]{
-	   Math.exp(x.val[0]) * x.val[1] * x.val[1],
-	   x.val[0] * x.val[0] + x.val[1] * x.val[1] - 1
-       });
-
-       return y;
+    return x;
    }
 
    public static Matrix fPrime(Vector x) {

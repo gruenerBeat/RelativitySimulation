@@ -141,7 +141,7 @@ public class Matrix {
 
     public Matrix inverse() {
         assert m == n : "Can't form inverse of non-square matrix";
-	assert determinant() != 0 : "Cannot compute inverse";
+	    assert determinant() != 0 : "Cannot compute inverse";
         
 
         if(m == 2) {

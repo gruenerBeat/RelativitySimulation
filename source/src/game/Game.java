@@ -33,16 +33,6 @@ public class Game extends GameRegister {
     @Override
     public void init() {
 
-
-	Vector x = new Vector(new double[]{
-	    10, 10
-	});
-
-	for(int i = 0; i < 10; i++) {
-	    x = HamiltonTest.nonLinearSolverStep(x);
-	    System.out.println(x.toString());
-	}
-
         Camera.getCurrent().transform().setPosition(new Vector(new double[]{10, 0, 0}));
         ((CameraProperty)Camera.getCurrent().findProperty(PropertyType.CAMERA)).lookAt(new Vector(new double[]{0, 0, 0}));
 

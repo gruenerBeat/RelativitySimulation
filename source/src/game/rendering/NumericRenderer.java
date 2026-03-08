@@ -15,6 +15,7 @@ import engine.rendering.Renderer;
 import engine.types.Object;
 import engine.types.World;
 import game.Metric;
+import game.math.NewtonSolver;
 
 public class NumericRenderer extends Renderer {
     
@@ -116,14 +117,16 @@ public class NumericRenderer extends Renderer {
                         //rays[x][y].state = Vector.add(rays[x][y].state, Vector.mul(Metric.getYPrime(rays[x][y].state), timeStep));
 
                         //RK4
-                        Vector k1 = Metric.getYPrime(rays[x][y].state);
+                        /*Vector k1 = Metric.getYPrime(rays[x][y].state);
                         Vector k2 = Metric.getYPrime(Vector.add(rays[x][y].state, Vector.mul(k1, timeStep / 2)));
                         Vector k3 = Metric.getYPrime(Vector.add(rays[x][y].state, Vector.mul(k2, timeStep / 2)));
                         Vector k4 = Metric.getYPrime(Vector.add(rays[x][y].state, Vector.mul(k3, timeStep)));
                         Vector p1 = Vector.mul(k2, 2);
                         Vector p2 = Vector.mul(k3, 2);
                         Vector sum = Vector.mul(Vector.add(k1, Vector.add(p1, Vector.add(p2, k4))), timeStep / 6);
-                        rays[x][y].state = Vector.add(rays[x][y].state, sum);
+                        rays[x][y].state = Vector.add(rays[x][y].state, sum);*/
+                        
+                        rays[x][y].state = NewtonSolver.step(rays[x][y].state, timeStep);
 
                         Vector velocity = new Vector(new double[]{
                             rays[x][y].state.val[1],
@@ -132,6 +135,10 @@ public class NumericRenderer extends Renderer {
                             rays[x][y].state.val[7]
                         });
                         double speed = velocity.magnitude();
+
+                        if(x == width / 2 && y == height / 2 || true) {
+                            System.out.println(velocity.toString());
+                        }
 
                         rays[x][y].state.val[1] *= (Metric.c / speed);
                         rays[x][y].state.val[3] *= (Metric.c / speed);
