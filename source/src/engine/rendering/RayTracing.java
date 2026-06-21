@@ -21,6 +21,8 @@ public class RayTracing extends Renderer {
 
     private static RayTracing rayTracing;
 
+    private int maxBounces = 5;
+
     private Ray[][] rays;
 
     private RayTracing(int width, int height) {
@@ -44,98 +46,55 @@ public class RayTracing extends Renderer {
         assert cam.hasProperty(PropertyType.CAMERA) : "Object isn't a camera";
         Texture tex = new Texture(width, height);
 
-        IntStream.range(0, width).parallel().forEach(x -> {
-            IntStream.range(0, height).parallel().forEach(y -> {
+        for(int j = 0; j < maxBounces; j++) {
+            IntStream.range(0, width).parallel().forEach(x -> {
+                IntStream.range(0, height).parallel().forEach(y -> {
+                    if(rays[x][y].didHit) {
+                        tex.setPixelAt(x, y, rays[x][y].hitColor);
+                    } else {
+                        rays[x][y].hitDst = Double.MAX_VALUE;
 
-                rays[x][y].hitDst = Double.MAX_VALUE;
-                rays[x][y].hitColor = new Color(0, 0, 0);
+                        for(int i = 0; i < world.getObjects().size(); i++) {
+                            Object object = world.getObjects().get(i);
 
-                for(int i = 0; i < world.getObjects().size(); i++) {
-                    Object object = world.getObjects().get(i);
+                            if(object.hasProperty(PropertyType.SPHERE_RENDERER)) {
+                                double r = ((SphereRenderer)object.findProperty(PropertyType.SPHERE_RENDERER)).radius;
+                                Vector position = object.transform().getPosition();
+                                Color sphereColor = ((SphereRenderer)object.findProperty(PropertyType.SPHERE_RENDERER)).color;
 
-                    if(object.hasProperty(PropertyType.MESH_RENDERER)) {
-                        Mesh mesh = ((MeshRenderer)object.findProperty(PropertyType.MESH_RENDERER)).getMesh();
-                        for(int j = 0; j < mesh.getTris().length / 3; j++) {
-                            Vector normal = mesh.getNormals()[i];
-                            Vector origin = mesh.getVertices()[i * 3];
+                                double a = rays[x][y].direction.magnitude() * rays[x][y].direction.magnitude();
+                                double b = 2 *  Vector.dot(rays[x][y].direction, Vector.sub(rays[x][y].origin, position));
+                                double c = Vector.sub(rays[x][y].origin, position).magnitude() * Vector.sub(rays[x][y].origin, position).magnitude() - r * r;
 
-                            double denominator = Vector.dot(normal, rays[x][y].direction);
+                                double d = b * b - 4 * a * c;
 
-                            if(denominator > 0) {
+                                if(d >= 0) {
+                                    double dst;
 
-                                Vector difference = Vector.sub(origin, rays[x][y].origin);
-                                double nominator = Vector.dot(difference, normal);
+                                    if(d == 0) {
+                                        dst = -(b / 2);
+                                    } else {
+                                        double dst1 = (-b + Math.sqrt(d)) / 2;
+                                        double dst2 = (-b - Math.sqrt(d)) / 2;
 
-                                double dst = nominator / denominator;
+                                        dst = dst1 < dst2 ? dst1 : dst2;
+                                    }
 
-                                if(dst < rays[x][y].hitDst) {
-                                    
-                                    Vector hitPoint = Vector.add(rays[x][y].origin, Vector.mul(rays[x][y].direction, dst));
-                                    
-                                    Vector AB = Vector.sub(mesh.getVertices()[i * 3 + 1], origin);
-                                    Vector BC = Vector.sub(mesh.getVertices()[i * 3 + 2], mesh.getVertices()[i * 3 + 1]);
-                                    Vector CA = Vector.sub(origin, mesh.getVertices()[i * 3 + 2]);
-
-                                    Vector APoint = Vector.sub(hitPoint, origin);
-                                    Vector BPoint = Vector.sub(hitPoint, mesh.getVertices()[i * 3 + 1]);
-                                    Vector CPoint = Vector.sub(hitPoint, mesh.getVertices()[i * 3 + 2]);
-
-                                    Vector rotatedAB = AB.rotated(normal, -Math.PI / 2);
-                                    Vector rotatedBC = BC.rotated(normal, -Math.PI / 2);
-                                    Vector rotatedCA = CA.rotated(normal, -Math.PI / 2);
-
-                                    double dotA = Vector.dot(APoint, rotatedAB);
-                                    double dotB = Vector.dot(BPoint, rotatedBC);
-                                    double dotC = Vector.dot(CPoint, rotatedCA);
-
-                                    if(dotA > 0 && dotB > 0 && dotC > 0) {
-                                        
+                                    if(dst < rays[x][y].hitDst) {
                                         rays[x][y].hitDst = dst;
-                                        rays[x][y].hitColor = new Color(255, 255, 255);
-                                        rays[x][y].hitNormal = normal;
+                                        rays[x][y].hitNormal = Vector.sub(Vector.add(rays[x][y].origin, Vector.mul(rays[x][y].direction, dst)), position).normalized(1);
+
+                                        rays[x][y].hitColor = sphereColor;
                                     }
                                 }
                             }
                         }
+                        tex.setPixelAt(x, y, rays[x][y].hitColor);
                     }
-                    
-                    if(object.hasProperty(PropertyType.SPHERE_RENDERER)) {
-                        double r = ((SphereRenderer)object.findProperty(PropertyType.SPHERE_RENDERER)).radius;
-                        Vector position = object.transform().getPosition();
-                        Color sphereColor = ((SphereRenderer)object.findProperty(PropertyType.SPHERE_RENDERER)).color;
-
-                        double a = rays[x][y].direction.magnitude() * rays[x][y].direction.magnitude();
-                        double b = 2 *  Vector.dot(rays[x][y].direction, Vector.sub(rays[x][y].origin, position));
-                        double c = Vector.sub(rays[x][y].origin, position).magnitude() * Vector.sub(rays[x][y].origin, position).magnitude() - r * r;
-
-                        double d = b * b - 4 * a * c;
-
-                        if(d >= 0) {
-                            double dst;
-
-                            if(d == 0) {
-                                dst = -(b / 2);
-                            } else {
-                                double dst1 = (-b + Math.sqrt(d)) / 2;
-                                double dst2 = (-b - Math.sqrt(d)) / 2;
-
-                                dst = dst1 < dst2 ? dst1 : dst2;
-                            }
-
-                            if(dst < rays[x][y].hitDst) {
-                                rays[x][y].hitDst = dst;
-                                rays[x][y].hitNormal = Vector.sub(Vector.add(rays[x][y].origin, Vector.mul(rays[x][y].direction, dst)), position).normalized(1);
-
-                                rays[x][y].hitColor = sphereColor;
-                            }
-                        }
-                    }
-
-               }
-
-                tex.setPixelAt(x, y, rays[x][y].hitColor);
+                });
             });
-        });
+        }
+        
 
         return tex;
     }

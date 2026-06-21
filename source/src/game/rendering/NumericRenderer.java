@@ -14,17 +14,25 @@ import engine.properties.renderers.SphereRenderer;
 import engine.rendering.Renderer;
 import engine.types.Object;
 import engine.types.World;
+import game.Game;
 import game.Metric;
-import game.math.NewtonSolver;
+import game.math.ExplicitEuler;
+import game.math.RK4;
+import game.math.Solver;
 
 public class NumericRenderer extends Renderer {
     
     private RelativisticRay[][] rays;
 
+    private static final double TOLERANCE = 1e-2;
+
+    private Solver solver;
+
     private static NumericRenderer numericRenderer;
     private NumericRenderer(int width, int height) {
         super(width, height);
         rays = new RelativisticRay[width][height];
+        solver = new RK4(0.05);
     }
     public static NumericRenderer getInstance(int width, int height) {
         if(numericRenderer == null) {
@@ -53,10 +61,10 @@ public class NumericRenderer extends Renderer {
 
         IntStream.range(0, width).parallel().forEach(x -> {
             IntStream.range(0, height).parallel().forEach(y -> {
-                if(!rays[x][y].didHit && rays[x][y].state.val[0] > 0) {
+                if(!rays[x][y].didHit && rays[x][y].state.val[0] > Metric.rs + Game.TOLERANCE) {
                     Vector rayPos = new Vector(new double[]{rays[x][y].state.val[0], rays[x][y].state.val[4], rays[x][y].state.val[6]});
 
-                    if(rays[x][y].state.val[0] <= Metric.rs || rays[x][y].state.val[0] >= 50) {
+                    if(rays[x][y].state.val[0] <= Metric.rs + TOLERANCE || rays[x][y].state.val[0] >= 50) {
                         rays[x][y].didHit = true;
                         rays[x][y].color = new Color(0, 0, 0);
                     } else {
@@ -109,24 +117,9 @@ public class NumericRenderer extends Renderer {
                             }
                         }
 
-                        double timeStep = 0.04;
-
                         rays[x][y].previous = rays[x][y].state;
 
-                        //Explicit Euler
-                        //rays[x][y].state = Vector.add(rays[x][y].state, Vector.mul(Metric.getYPrime(rays[x][y].state), timeStep));
-
-                        //RK4
-                        /*Vector k1 = Metric.getYPrime(rays[x][y].state);
-                        Vector k2 = Metric.getYPrime(Vector.add(rays[x][y].state, Vector.mul(k1, timeStep / 2)));
-                        Vector k3 = Metric.getYPrime(Vector.add(rays[x][y].state, Vector.mul(k2, timeStep / 2)));
-                        Vector k4 = Metric.getYPrime(Vector.add(rays[x][y].state, Vector.mul(k3, timeStep)));
-                        Vector p1 = Vector.mul(k2, 2);
-                        Vector p2 = Vector.mul(k3, 2);
-                        Vector sum = Vector.mul(Vector.add(k1, Vector.add(p1, Vector.add(p2, k4))), timeStep / 6);
-                        rays[x][y].state = Vector.add(rays[x][y].state, sum);*/
-                        
-                        rays[x][y].state = NewtonSolver.step(rays[x][y].state, timeStep);
+                        rays[x][y].state = solver.step(rays[x][y].previous);
 
                         Vector velocity = new Vector(new double[]{
                             rays[x][y].state.val[1],
@@ -135,11 +128,6 @@ public class NumericRenderer extends Renderer {
                             rays[x][y].state.val[7]
                         });
                         double speed = velocity.magnitude();
-
-                        if(x == width / 2 && y == height / 2 || true) {
-                            System.out.println(velocity.toString());
-                        }
-
                         rays[x][y].state.val[1] *= (Metric.c / speed);
                         rays[x][y].state.val[3] *= (Metric.c / speed);
                         rays[x][y].state.val[5] *= (Metric.c / speed);

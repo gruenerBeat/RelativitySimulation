@@ -5,6 +5,7 @@ import engine.libs.types.Color.Color;
 
 public class Ray {
     
+    public boolean didHit;
     public Vector origin;
     public Vector direction;
     public double hitDst;

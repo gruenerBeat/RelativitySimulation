@@ -15,6 +15,8 @@ import engine.types.World;
 
 public class Game extends GameRegister {
     
+    public static double TOLERANCE = 1e-8;
+
     @Override
     public GameInitializer register() {
         GameInitializer init = new GameInitializer();
@@ -22,10 +24,10 @@ public class Game extends GameRegister {
         init.name = "Relativity Simulation";
         init.rt = RenderType.NUMERIC;
         init.fov = 60;
-        init.screenWidth = 1280;
-        init.screenHeight = 720;
-        init.targetFPS = 20;
-        init.targetTPS = 20;
+        init.screenWidth = 1820;
+        init.screenHeight = 1000;
+        init.targetFPS = 60;
+        init.targetTPS = 60;
 
         return init;
     }

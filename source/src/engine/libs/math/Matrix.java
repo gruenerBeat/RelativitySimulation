@@ -275,6 +275,16 @@ public class Matrix {
         }
     }
 
+    public static Matrix sub(Matrix a, Matrix b) {
+        Matrix out = new Matrix(a.getM(), a.getN());
+        for(int i = 0; i < a.getM(); i++) {
+            for(int j = 0; j < a.getN(); j++) {
+                out.val[i][j] = a.val[i][j] - b.val[i][j];
+            }   
+        }
+        return out;
+    }
+
     @Override
     public String toString() {
         String a = "";
