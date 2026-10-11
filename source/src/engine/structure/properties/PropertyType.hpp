@@ -1,0 +1,6 @@
+#ifndef PROPERTYTYPE_HPP
+#define PROPERTYTYPE_HPP
+
+enum PropertyType { TRANSFORM, CAMERA, BEHAVIOUR };
+
+#endif
